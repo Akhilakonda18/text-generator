@@ -21,6 +21,7 @@ This project is designed to run in a Jupyter or Google Colab notebook environmen
 
 #### 1. Requirements
 
+
 The project relies on the following Python libraries:
 
 * `transformers`: For accessing and running the GPT-2 model.
@@ -30,3 +31,5 @@ The project relies on the following Python libraries:
 To install these dependencies, run the following command in your terminal:
 ```bash
 pip install -r requirements.txt
+
+LINK DIRECT : https://colab.research.google.com/github/Akhilakonda18/text-generator/blob/GPT_2.ipynb
