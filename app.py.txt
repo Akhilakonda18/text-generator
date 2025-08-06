@@ -1,0 +1,161 @@
+# 📦 Install required libraries
+# (Note: In a standalone script, you'd install these via pip before running)
+# pip install transformers ipywidgets
+
+# 🔁 Imports
+from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
+from IPython.display import display, HTML
+import ipywidgets as widgets
+import io
+from google.colab import files
+
+# Inject custom CSS for a light theme
+light_theme_css = """
+<style>
+  .widget-container {
+    background-color: #f7f7f7;
+    color: #333333;
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+  }
+  .widget-label {
+    color: #555555;
+    font-weight: 500;
+  }
+  .widget-dropdown, .widget-textarea, .widget-text {
+    background-color: #ffffff;
+    color: #333333;
+    border: 1px solid #cccccc;
+    padding: 8px;
+    border-radius: 6px;
+  }
+  .widget-button.mod-info {
+    background-color: #007bff;
+    color: white;
+  }
+  .widget-button.mod-warning {
+    background-color: #28a745;
+    color: white;
+  }
+  h3, h4 {
+    color: #007bff;
+    font-family: sans-serif;
+  }
+  p {
+    font-family: serif;
+    line-height: 1.6;
+  }
+</style>
+"""
+display(HTML(light_theme_css))
+
+# 🧠 Load GPT-2 model + tokenizer
+display(HTML("<b>Loading GPT-2 model... This may take a few minutes.</b>"))
+tokenizer = AutoTokenizer.from_pretrained("gpt2")
+model = AutoModelForCausalLM.from_pretrained("gpt2")
+generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
+display(HTML("<b>✅ Model loaded successfully!</b>"))
+
+# ✍ Input Widgets
+custom_prompt = widgets.Textarea(
+    placeholder='Type your own prompt here...',
+    description='Your Prompt:',
+    layout=widgets.Layout(width='600px', height='120px'),
+    style={'description_width': 'initial'}
+)
+# ... (rest of your widget definitions) ...
+style_selector = widgets.Dropdown(
+    options=["Normal", "Poetic", "Funny", "Sci-fi", "Romantic"],
+    description='Style:',
+    layout=widgets.Layout(width='300px'),
+    style={'description_width': 'initial'}
+)
+# ... (rest of your widget definitions) ...
+sample_prompts = ["A futuristic city run by robots", "An alien studying human behavior", "A storyteller AI exploring emotions"]
+sample_dropdown = widgets.Dropdown(options=sample_prompts, description='Samples:', layout=widgets.Layout(width='400px'), style={'description_width': 'initial'})
+use_sample_button = widgets.Button(description="Insert Sample", button_style='primary')
+generate_button = widgets.Button(description="Generate", button_style='success')
+save_button = widgets.Button(description="Save Output", button_style='info')
+download_button = widgets.Button(description="Download Output", button_style='warning')
+output_area = widgets.Output()
+
+# 🧠 Prompting Strategies for different styles
+style_prompts = {
+    "Funny": "In a funny style, ",
+    "Poetic": "A poem about: ",
+    "Sci-fi": "A sci-fi story about: ",
+    "Romantic": "A romantic tale about: ",
+    "Normal": "",
+}
+
+# 🧠 Insert Sample
+def insert_sample(b):
+    custom_prompt.value = sample_dropdown.value
+
+# ⚡ Generate Text
+def run_generation(b):
+    # ... (code for text generation) ...
+    with output_area:
+        output_area.clear_output()
+        raw_input = custom_prompt.value.strip()
+        style = style_selector.value
+        if raw_input:
+            style_prefix = style_prompts.get(style, "")
+            full_input = f"{style_prefix}{raw_input}"
+            result = generator(full_input, max_length=150, truncation=True)[0]["generated_text"]
+            output_area.generated_result = f"Prompt: {raw_input}\nStyle: {style}\n\nGenerated Text:\n{result}"
+            display(HTML(f"<h4>Generated Output ({style}):</h4><p><b>{result}</b></p>"))
+        else:
+            display(HTML("<p style='color:red'><b>Please enter a prompt first.</b></p>"))
+
+# 📁 Save to Notebook Environment
+def save_output(b):
+    # ... (code for saving output) ...
+    if hasattr(output_area, 'generated_result'):
+        with open("generated_text.txt", "w") as f:
+            f.write(output_area.generated_result)
+        with output_area:
+            display(HTML("<p><b>✅ Saved 'generated_text.txt' to notebook.</b></p>"))
+    else:
+        with output_area:
+            display(HTML("<p style='color:red'><b>No generated text found. Generate first.</b></p>"))
+
+# 📥 Download to Device
+def download_output(b):
+    # ... (code for downloading output) ...
+    if hasattr(output_area, 'generated_result'):
+        buffer = io.BytesIO(output_area.generated_result.encode('utf-8'))
+        files.download(buffer, filename="generated_text.txt")
+    else:
+        with output_area:
+            display(HTML("<p style='color:red'><b>No generated text available to download.</b></p>"))
+
+
+# 🔗 Link buttons
+use_sample_button.on_click(insert_sample)
+generate_button.on_click(run_generation)
+save_button.on_click(save_output)
+download_button.on_click(download_output)
+
+# 🎨 Display Layout
+header_html = "<h3>✨ GPT-2 Interactive Generator</h3><p>Enter a prompt and select a style to generate text.</p>"
+display(HTML(header_html))
+
+input_widgets = widgets.VBox([
+    custom_prompt,
+    widgets.HBox([style_selector, generate_button]),
+])
+input_widgets.add_class('widget-container')
+
+sample_widgets = widgets.VBox([
+    widgets.HTML("<b>Or pick a sample for inspiration:</b>"),
+    widgets.HBox([sample_dropdown, use_sample_button])
+])
+sample_widgets.add_class('widget-container')
+
+display(input_widgets)
+display(widgets.HBox([save_button, download_button]))
+display(output_area)
+display(sample_widgets)
