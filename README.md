@@ -19,6 +19,9 @@ This project is an interactive tool for generating text using OpenAI's GPT-2 mod
 
 This project is designed to run in a Jupyter or Google Colab notebook environment.
 
+
+LINK DIRECT : (https://colab.research.google.com/github/Akhilakonda18/text-generator/blob/GPT_2.ipynb)
+
 #### 1. Requirements
 
 
@@ -32,4 +35,3 @@ To install these dependencies, run the following command in your terminal:
 ```bash
 pip install -r requirements.txt
 
-LINK DIRECT : https://colab.research.google.com/github/Akhilakonda18/text-generator/blob/GPT_2.ipynb
